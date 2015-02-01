@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -e
+set -i
+
+shift $((OPTIND - 1))
+
+pattern=$1
+replacement=$2
+
+if [[ $3 = "" ]]; then
+  glob=./*
+else
+  glob=$3
+fi
+
+function list_files {
+  git ls-files $glob
+}
+
+function list_directories {
+  list_files | xargs -L 1 dirname | sort | uniq
+}
+
+mv_cmd="git mv \$0 \${0/$pattern/$replacement}"
+
+list_directories | \
+  grep $pattern | \
+  xargs -L 1 bash -c "$mv_cmd"
+
+list_files | \
+  grep $pattern | \
+  xargs -L 1 bash -c "$mv_cmd"
